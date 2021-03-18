@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-
+const cTable = require('console.table');
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -43,11 +43,11 @@ const runSearch = () => {
     .then((answer) => {
       switch (answer.action) {
         case 'See current employees, departments and roles':
-          artistSearch();
+          displayAll();
           break;
 
-        case 'Find all artists who appear more than once':
-          multiSearch();
+        case 'Add an employee':
+          addEmp();
           break;
 
         case 'Find data within a specific range':
@@ -69,27 +69,37 @@ const runSearch = () => {
     });
 };
 
-const artistSearch = () => {
-  inquirer
-    .prompt({
-      name: 'artist',
-      type: 'input',
-      message: 'What artist would you like to search for?',
-    })
-    .then((answer) => {
-      const query = 'SELECT position, song, year FROM top5000 WHERE ?';
-      connection.query(query, { artist: answer.artist }, (err, res) => {
-        res.forEach(({ position, song, year }) => {
-          console.log(
-            `Position: ${position} || Song: ${song} || Year: ${year}`
-          );
-        });
+const displayAll = () => {
+      const query = `SELECT Employee.First_Name, Employee.Last_Name, Role.Title, Role.Salary, Department.Department_Name, Manager.First_Name, Manager.Last_Name FROM Employee INNER JOIN Role ON Employee.role_id = Role.id INNER JOIN Department ON Role.department_id = Department.id INNER JOIN Employee AS Manager ON Employee.manager_id = Manager.id`;
+      connection.query(query, (err, res) => {
+        console.log(res);
+         const table = cTable.getTable(res);
+         console.log(`\n`+table)
         runSearch();
       });
-    });
-};
+    };
 
-const multiSearch = () => {
+const addEmp = () => {
+  inquirer.prompt({
+    type: 'input',
+    name: 'first',
+    message: 'Please input the first name of the employee'
+  },
+  {
+    type: 'input',
+    name: 'last',
+    message: 'Please input the last name of the employee'
+  },
+  {
+    type: 'list',
+    name: 'first',
+    message: 'Please select the role of the employee'
+  },
+  {
+    type: 'input',
+    name: 'first',
+    message: 'Please select the manager of the employee'
+  },)
   const query =
     'SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1';
   connection.query(query, (err, res) => {
