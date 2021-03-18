@@ -70,7 +70,7 @@ const runSearch = () => {
 };
 
 const displayAll = () => {
-      const query = `SELECT Employee.First_Name, Employee.Last_Name, Role.Title, Role.Salary, Department.Department_Name, Manager.First_Name, Manager.Last_Name FROM Employee INNER JOIN Role ON Employee.role_id = Role.id INNER JOIN Department ON Role.department_id = Department.id INNER JOIN Employee AS Manager ON Employee.manager_id = Manager.id`;
+      const query = `SELECT Employee.First_Name, Employee.Last_Name, Role.Title, Role.Salary, Department.Department_Name, Manager.First_Name, Manager.Last_Name FROM Employee INNER JOIN Role ON Employee.role_id = Role.id INNER JOIN Department ON Role.department_id = Department.id LEFT JOIN Employee AS Manager ON Employee.manager_id = Manager.id;`;
       connection.query(query, (err, res) => {
         console.log(res);
          const table = cTable.getTable(res);
