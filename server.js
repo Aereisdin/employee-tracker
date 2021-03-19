@@ -370,5 +370,3 @@ const deleteRole = () => {
 })
   .catch((err) => console.error(err));
 }
-
-  
