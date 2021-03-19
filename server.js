@@ -29,7 +29,7 @@ const runSearch = () => {
   inquirer
     .prompt({
       name: "action",
-      type: "list",
+      type: "rawlist",
       message: "What would you like to do?",
       choices: [
         "Display current employees, their roles and departments",
