@@ -1,6 +1,9 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
+const { get } = require('lodash');
+const roleList = [];
+const empList = [];
 
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -25,7 +28,7 @@ const runSearch = () => {
   inquirer
     .prompt({
       name: 'action',
-      type: 'rawlist',
+      type: 'list',
       message: 'What would you like to do?',
       choices: [
         'See current employees, departments and roles',
@@ -70,43 +73,57 @@ const runSearch = () => {
 };
 
 const displayAll = () => {
-      const query = `SELECT Employee.First_Name, Employee.Last_Name, Role.Title, Role.Salary, Department.Department_Name, Manager.First_Name, Manager.Last_Name FROM Employee INNER JOIN Role ON Employee.role_id = Role.id INNER JOIN Department ON Role.department_id = Department.id LEFT JOIN Employee AS Manager ON Employee.manager_id = Manager.id;`;
+      const query = `SELECT Employee.First_Name, Employee.Last_Name, Role.Title, Role.Salary, Department.Department_Name, Manager.First_Name AS Manager_First, Manager.Last_Name AS Manager_Last FROM Employee INNER JOIN Role ON Employee.role_id = Role.id INNER JOIN Department ON Role.department_id = Department.id LEFT JOIN Employee AS Manager ON Employee.manager_id = Manager.id;`;
       connection.query(query, (err, res) => {
-        console.log(res);
          const table = cTable.getTable(res);
          console.log(`\n`+table)
         runSearch();
       });
     };
-
+const getInfo = () => {
+  const getRoleList = `SELECT title FROM Role`;
+  const getEmpName = `SELECT First_Name, Last_Name FROM Employee`;
+  connection.query(getRoleList, (err, res) => {
+    res.forEach(({title}) => roleList.push(`${title}`))
+    console.log(roleList)
+  });
+  connection.query(getEmpName, (err, res) => {
+    res.forEach(({First_Name, Last_Name}) => empList.push(`${First_Name} ${Last_Name}`))
+    console.log(empList)
+  });
+}
 const addEmp = () => {
+  getInfo();
   inquirer.prompt({
+    type: 'list',
+    name: 'role',
+    message: 'Please select the role of the employee',
+    choices: [...roleList]
+  },
+  {
+    type: 'list',
+    name: 'manager',
+    message: 'Please select the manager of the employee',
+    choices: [...empList]
+  },
+  {
     type: 'input',
-    name: 'first',
+    name: 'last',
     message: 'Please input the first name of the employee'
   },
   {
     type: 'input',
     name: 'last',
     message: 'Please input the last name of the employee'
-  },
-  {
-    type: 'list',
-    name: 'first',
-    message: 'Please select the role of the employee'
-  },
-  {
-    type: 'input',
-    name: 'first',
-    message: 'Please select the manager of the employee'
-  },)
-  const query =
-    'SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1';
-  connection.query(query, (err, res) => {
-    res.forEach(({ artist }) => console.log(artist));
+  })
+  .then((answers) => { 
+    const query =`INSERT INTO Employee('first_name', 'last_name', 'role_id', 'manager_id') VALUES (?, ?, ?, ?)`;
+  connection.query(query, [answers.first, answers.last, answers.role, answers.manager], (err, res) => {
+    console.log(`Added New Employee`);
     runSearch();
-  });
-};
+  })
+  })
+  .catch(err)
 
 const rangeSearch = () => {
   inquirer
@@ -201,4 +218,4 @@ const songAndAlbumSearch = () => {
         runSearch();
       });
     });
-};
+}};
